@@ -26,13 +26,13 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
-DTVERSE(디티버스) 멤버 PORTAL - BACK-END
+COMMON PORTAL - BACK-END
 
 해당 프로젝트는 Nest js 로 백엔드만 담당하는 프로젝트
 
 프론트엔드의 경우 GIT 경로는 아래와 같습니다.
 
-DTVERSE MEMBER FRONT-END 소스 바로가기 - [GITLAB](https://gitlab.com/dtverse/fe-dtverse-memberportal)
+<!-- DTVERSE MEMBER FRONT-END 소스 바로가기 - [GITLAB](https://gitlab.com/dtverse/fe-dtverse-memberportal) -->
 
 ## Installation
 
@@ -61,7 +61,7 @@ $ pm2 start dist/main.js --name be-memberportal
    .env (db 접속정보 및 구동 port 설정됨) -> git에서 관리하지 않고 개발자 로컬에서 관리함
 
 ## Creation date
-2023.03.17
+2023.11.03
 
 ## Support
 
