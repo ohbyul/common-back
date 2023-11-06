@@ -10,8 +10,6 @@ import { CommonQuery } from 'src/common/common.queries';
 import { SMSSender } from 'src/lib/sms-sender';
 import { ReqRes } from 'src/lib/req-res';
 import { Crypto } from 'src/lib/crypto';
-import { MemberModule } from 'src/member/member.module';
-import { MemberQuery } from 'src/member/member.queries';
 
 @Module({
   imports: [
@@ -20,12 +18,10 @@ import { MemberQuery } from 'src/member/member.queries';
       secret: `${process.env.JWT_TOKEN_SECRET}`,
       signOptions: { expiresIn: '6h' },
     }),
-    MemberModule,
   ],
   providers: [
     AuthService,
     AuthQuery,
-    MemberQuery,
     JwtStrategy,
     CommonQuery,
     SMSSender,

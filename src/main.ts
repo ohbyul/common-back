@@ -18,8 +18,8 @@ async function bootstrap() {
 
   app.enableCors();
   const config = new DocumentBuilder()
-    .setTitle('DTVERSE member 포털 API Swagger')
-    .setDescription('DTVERSE member 포털 API')
+    .setTitle('member 포털 API Swagger')
+    .setDescription('member 포털 API')
     .setVersion('1.0')
     .addBearerAuth(
       {

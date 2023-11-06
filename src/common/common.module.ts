@@ -17,13 +17,6 @@ import { BoardService } from 'src/board/board.service';
   providers: [
     CommonService,
     CommonQuery,
-    SMSSender,
-    EmailSender,
-    ReqRes,
-    Crypto,
-    CloudApi,
-    BoardQuery,
-    BoardService
   ],
 })
 export class CommonModule {}

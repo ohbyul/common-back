@@ -12,21 +12,8 @@ import { AppService } from './app.service';
 import { COMMON } from './entitys/common/common.model';
 
 import { AuthModule } from './auth/auth.module';
-import { MemberModule } from './member/member.module';
-
 import { CommonModule } from './common/common.module';
-
-import { ProjectModule } from './project/project/project.module';
-import { ParticipantModule } from './project/participant/participant.module';
-import { ExaminationModule } from './project/examination/examination.module';
-import { ConsentModule } from './project/consent/consent.module';
-import { SubjectModule } from './project/subject/subject.module';
-import { ScreeningModule } from './project/screening/screening.module';
-import { CounselModule } from './project/counsel/counsel.module';
-import { SurveyModule } from './project/survey/survey.module';
-
 import { BoardModule } from './board/board.module';
-import { ProjectBoardModule } from './project/projectboard/projectboard.module';
 
 @Module({
   imports: [
@@ -52,18 +39,8 @@ import { ProjectBoardModule } from './project/projectboard/projectboard.module';
       models: [COMMON],
     }),
     AuthModule,
-    MemberModule,
-    ProjectModule,
     CommonModule,
-    ParticipantModule,
-    ExaminationModule,
-    ConsentModule,
-    SubjectModule,
-    ScreeningModule,
-    CounselModule,
-    SurveyModule,
     BoardModule,
-    ProjectBoardModule,
   ],
   controllers: [AppController],
   providers: [AppService,

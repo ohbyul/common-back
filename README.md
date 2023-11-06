@@ -30,7 +30,7 @@ COMMON PORTAL - BACK-END
 
 해당 프로젝트는 Nest js 로 백엔드만 담당하는 프로젝트
 
-프론트엔드의 경우 GIT 경로는 아래와 같습니다.
+<!-- 프론트엔드의 경우 GIT 경로는 아래와 같습니다. -->
 
 <!-- DTVERSE MEMBER FRONT-END 소스 바로가기 - [GITLAB](https://gitlab.com/dtverse/fe-dtverse-memberportal) -->
 
