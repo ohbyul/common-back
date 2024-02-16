@@ -4,9 +4,20 @@ import { AppModule } from './app.module';
 import { TrackingInterceptor } from './interceptor/user-tracking.interceptor';
 import { urlencoded, json } from 'body-parser';
 import { ConvertCaseInterceptor } from './interceptor/convert-case.interceptor';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    logger: process.env.NODE_ENV == null ? ['debug'] : process.env.NODE_ENV === 'dev' ? ['debug'] : ['log']
+  });
+
+  // app.useGlobalPipes(
+  //   new ValidationPipe({
+  //     whitelist: true,                //DTO에 없는 값은 거르고 에러메세지 출력
+  //     forbidNonWhitelisted: true,     //DTO에 존재하지않는 값이 들어오면 에러메세지출력
+  //     transform: true,                //DTO에 설정 타입은 striing이지만 number로 타입 변형 가능하게 설정
+  //   }),
+  // );
 
   //인터셉터 전역 선언
   app.useGlobalInterceptors(new TrackingInterceptor());
@@ -18,8 +29,8 @@ async function bootstrap() {
 
   app.enableCors();
   const config = new DocumentBuilder()
-    .setTitle('member 포털 API Swagger')
-    .setDescription('member 포털 API')
+    .setTitle('common API Swagger')
+    .setDescription('common API')
     .setVersion('1.0')
     .addBearerAuth(
       {

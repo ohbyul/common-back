@@ -15,11 +15,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     if (payload) {
       return { 
-        memberId: payload.memberId,
+        userId: payload.userId,
+        authority: payload.authority,
+        authorityNm: payload.authorityNm,
         status: payload.status,
-        memberNm: payload.memberNm,
-        useRestrictionYn:payload.useRestrictionYn,
-        loginRestrictionYn:payload.loginRestrictionYn,
+        organizationCd: payload.organizationCd,
+        organizationName: payload.organizationName,
+        userNm: payload.userNm,
      };
     } else {
       throw new UnauthorizedException('회원 정보 조회 실패');

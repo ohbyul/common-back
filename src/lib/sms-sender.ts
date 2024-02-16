@@ -37,12 +37,12 @@ export class SMSSender {
             };
 
             let body: object = {
-                'type': smsSendDto.SMSType,           // (SMS | LMS | MMS)
-                'contentType': "COMM",      // COMM:일반, AD:광고
-                'countryCode': "82",        // 국가코드 : 한국
-                'from': smsSendDto.smsSenderNo,   // 발신번호
-                'subject': smsSendDto.subject,        // 제문 LMS, MMS에서만 사용 가능
-                'content': smsSendDto.content,        // 내용
+                'type': smsSendDto.SMSType,             // (SMS | LMS | MMS)
+                'contentType': "COMM",                  // COMM:일반, AD:광고
+                'countryCode': "82",                    // 국가코드 : 한국
+                'from': smsSendDto.smsSenderNo,         // 발신번호
+                'subject': smsSendDto.subject,          // 제문 LMS, MMS에서만 사용 가능
+                'content': smsSendDto.content,          // 내용
                 'messages':[
                     {
                         'to': smsSendDto.receiveNo.replace(/-/g,""),    // 수신번호

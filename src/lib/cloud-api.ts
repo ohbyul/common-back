@@ -5,15 +5,17 @@ import moment from 'moment';
 @Injectable()
 export class CloudApi {
   private static instance: CloudApi;
-  private accessKey: string = process.env['NCP_ACCESS_KEY'];
-  private secretKey: string = process.env['NCP_SECRET_KEY'];
-  private endpoint: AWS.Endpoint = new AWS.Endpoint('https://' +process.env['NCP_S3_ENDPOINT']);;
+  private accessKey: string = process.env['NCP_ACCESS_KEY']; // '4XecRIcPEi8mL0FduCHm';
+  private secretKey: string = process.env['NCP_SECRET_KEY']; // 'AdemCFxEvYkjATxLwPbKUgL2mJGrhjZLnr1WfWli';
+  private endpoint: AWS.Endpoint = new AWS.Endpoint('https://'+ process.env['NCP_S3_ENDPOINT']);
   private region: string = process.env['NCP_REGION'];
   private S3: AWS.S3;
   private bucket: string = process.env['NCP_BUCKET'];
+  
+  //singleton api
+  // public static getInstance = () => this.instance || (this.instance = new this());
 
   constructor() {
-   
     //s3 초기화
     this.S3 = new AWS.S3({
       endpoint: this.endpoint,
@@ -56,6 +58,7 @@ export class CloudApi {
        
     } catch (error) {}
   };
+
 
   /*************************************************
    * S3 파일 가져오기

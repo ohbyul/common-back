@@ -25,7 +25,6 @@ export class ConvertCaseInterceptor implements NestInterceptor {
           if(resultData){
             const converted = jsConvert.camelKeys(data, { recursive: true , recursiveInArray: true , keepTypesOnRecursion: [Date]});
             data= converted
-            this.logger.debug(`   converted         =======> OK`);
           }
         }
         
