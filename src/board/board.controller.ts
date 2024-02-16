@@ -1,181 +1,232 @@
-import { Controller, Get, Put, Post, Body, Param, Delete, Req, UseGuards, UseInterceptors, UploadedFiles, Query, } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { UserParam } from 'src/decorator/user.deco';
+import {
+    Controller,
+    Get,
+    Put,
+    Post,
+    Body,
+    Patch,
+    Param,
+    Delete,
+    Options,
+    Req,
+    UseGuards,
+    UseInterceptors,
+    UploadedFiles,
+    Query
+  } from '@nestjs/common';
+  import { ApiBearerAuth, ApiBody, ApiOperation, ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+  import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+  import { AnyFilesInterceptor, FilesInterceptor } from '@nestjs/platform-express';
+  
+  import { BoardService } from './board.service';
+  
+  import { TransactionParam } from 'src/decorator/transaction.deco';
+  import { Transaction } from 'sequelize';
+  import { CommonPageDto } from 'src/dto/common-page.dto';
+  import { OrderOptionDto } from 'src/dto/order-option.dto';
+  import { WhereOptionDto } from 'src/dto/where-option.dto.';
+  import { BoardDto } from 'src/dto/board/board.dto';
+  import multerS3 from 'multer-s3';
+  import moment from 'moment';
+  import path from 'path';
+  import AWS from 'aws-sdk';
+  import dotenv from "dotenv";
+dotenv.config();
+  
 
-// Constructor
-import { BoardService } from './board.service';
-
-// DTO
-import { RequestUserDto } from 'src/dto/base/request.user.dto';
-
-import { BoardDto } from 'src/dto/board/board.dto';
-import { BoardSearchDto } from 'src/dto/board/board.search.dto';
-
-/*************************************************
- *
- * 게시판 기능
- * 
- * @author  : b.oh
- * @since   : 2023-12-20
- * @see     : 확인 가능한 링크
- *
- *
- * << 개정이력(Modification Information) >>
- *
- * 수정일        수정자   수정사항
- * ------------ -------- ------------------------
- * 2023-12-20   오  별    최초 생성
- * 2023-12-27   오  별    트랜잭션제거 
- * 2024-01-04   오  별    사용자 조회조건 기능추가 (bug 수정은 작성하지 않는다.)
- * ----------------------------------------------
- *
- ************************************************/
 @ApiTags('BOARD API')
 @Controller('/api/board')
 export class BoardController {
+  constructor(private boardService: BoardService) {}
 
-  constructor(
-    private boardService: BoardService
-  ) { }
-
-  /*************************************************   
-   * @description    게시글 리스트
-   * @param          {BoardSearchDto} props
-   * @param          {string} bbsKindCd
-   * @returns        게시글 리스트
-   * @todo           쿼리는 number로 못 받나
+  /*************************************************
+   * 게시글 리스트
+   * 
+   * @param 
+   * @returns 게시글 리스트 
    ************************************************/
   @Get('/public/:bbsKindCd')
-  @ApiOperation({ summary: '게시글 리스트', description: '게시글 리스트' })
-  @ApiQuery({ type: BoardSearchDto })
+  @ApiOperation({
+    summary: '게시글 리스트',
+    description: '게시글 리스트',
+  })
+  @ApiQuery({ type: CommonPageDto})
+  @ApiParam({ name: 'id' })
   @ApiParam({ name: 'bbsKindCd' })
   async getBoardList(
-    @Query() props: BoardSearchDto,
-    @Param('bbsKindCd') bbsKindCd: string,
-  ) {
-    props.bbsKindCd = bbsKindCd;
-
-    return this.boardService.getBoardList(props);
+                      @Query() props
+                      ,@Param('bbsKindCd') bbsKindCd: any
+                      ,@Param('id') path: any
+                      ,@Req() req
+                      ,@TransactionParam() transaction: Transaction ){
+    const member = req.user;
+    props['id'] = path;   //프로젝트 아이디
+    props['bbsKindCd'] = bbsKindCd;
+    return this.boardService.getBoardList({ props, member, transaction}); 
   }
 
-  /*************************************************   
-   * @description    게시글 상세
-   * @param          {BoardDto} props
-   * @param          {string} bbsKindCd
-   * @param          {string} id
-   * @returns        게시글 상세 데이터
+  /*************************************************
+   * 게시글 상세보기
+   * 
+   * @param 
+   * @returns 게시글 상세보기
    ************************************************/
   @Get('/public/:bbsKindCd/:id')
-  @ApiOperation({ summary: '게시글 상세', description: '게시글 상세', })
-  @ApiQuery({ type: BoardDto })
-  @ApiParam({ name: 'bbsKindCd' })
+  @ApiOperation({
+    summary: '게시글 상세',
+    description: '게시글 상세',
+  })
   @ApiParam({ name: 'id' })
-  async getBoardInfo(
-    @Query() props: BoardDto,
-    @Param('bbsKindCd') bbsKindCd: string,
-    @Param('id') id: string,
-  ) {
-    props.bbsKindCd = bbsKindCd;
-    props.id = id;
-
-    return this.boardService.getBoardInfo(props);
-  }
-
-
-
-
-
-  /*************************************************   
-   * @description    게시글 등록
-   * @param          {BoardDto} props
-   * @param          {string} bbsKindCd
-   * @returns        게시글 등록 성공여부
-   * @todo           파일처리
-   ************************************************/
-  // @UseGuards(JwtAuthGuard)
-  // @ApiBearerAuth('JWT')
-  @Post('/:bbsKindCd')
-  @ApiOperation({ summary: '게시글 등록', description: '게시글 등록 ', })
-  @ApiBody({ type: BoardDto })
   @ApiParam({ name: 'bbsKindCd' })
-  @UseInterceptors(FilesInterceptor('files'))
-  async insertBoard(
-    @Body() props: BoardDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Param('bbsKindCd') bbsKindCd: string,
-    @UserParam() user: RequestUserDto,
-  ) {
-    props.bbsKindCd = bbsKindCd;
-    props.files = files
-
-    // [case1]
-    // let result = this.boardService.insertBoard(props, user)
-    // let dataProps: BoardSearchDto = { bbsKindCd: 'NOTICE', page: 1, pageLength: 10 }
-    // let result2 = this.boardService.getBoardsTotalCount(dataProps)
-    // return result2;
-
-    // [case2]
-    return this.boardService.insertBoard(props, user);
+  async getBoardInfo( @Query() props
+                                   ,@Param('bbsKindCd') bbsKindCd: any
+                                   ,@Param('id') path: any
+                                   ,@Req() req
+                                   ,@TransactionParam() transaction: Transaction ){
+    const member = req.user;
+    props['id'] = path;
+    props['bbsKindCd'] = bbsKindCd;                                    
+    return this.boardService.getBoardInfo({ props,member, transaction});
   }
 
 
+  /*************************************************
+   * 게시글 등록
+   * 
+   * @param 
+   * @returns 게시글 등록 성공여부
+   ************************************************/
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @Post('/:bbsKindCd')
+  @ApiOperation({
+    summary: '게시글 등록',
+    description: '게시글 등록 ',
+  })
+  @UseInterceptors(FilesInterceptor('files'))
+  @ApiBody({ type: BoardDto })
+  @ApiParam({ name: 'id' })
+  @ApiParam({ name: 'bbsKindCd' })
+  async insertBoard( @Body() props 
+                    ,@Param('bbsKindCd') bbsKindCd: any
+                    ,@Param('id') path: any
+                    ,@Req() req 
+                    ,@TransactionParam() transaction: Transaction
+                    ,@UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    const member = req.user;
+    props = JSON.parse(props.body)
+    props['id'] = path;
+    props['bbsKindCd'] = bbsKindCd;
+    props['files'] = files
+    return this.boardService.insertBoard({ props, member, transaction})
+  }
 
 
+  /*************************************************
+   * 에디터 이미지 s3업로드 , 이미지 url 가져오기
+   * 
+   * @param 
+   * @returns 이미지 url
+   ************************************************/
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @Post('/editor/image')
+  @ApiOperation({
+    summary: '게시글 등록',
+    description: '게시글 등록 ',
+  })
+  @UseInterceptors(FilesInterceptor('file'))  // acl : 'public-read'
+  async uploadEditorImage(@Body() props 
+                        , @Req() req 
+                        , @TransactionParam() transaction: Transaction
+                        , @UploadedFiles() files: Array<Express.Multer.File>
+  ) {
+    props['files'] = files
+    return this.boardService.uploadEditorImage({ props, transaction})
+  }
 
-
-
-
-
-
-  /*************************************************   
-   * @description    게시글 수정
-   * @param          {BoardDto} props
-   * @param          {string} bbsKindCd
-   * @param          {string} id
-   * @returns        게시글 수정 성공여부
-   * @todo           파일처리
+  /*************************************************
+   * 게시글 수정
+   * 
+   * @param 
+   * @returns 게시글 수정 
    ************************************************/
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @Put('/:bbsKindCd/:id')
-  @ApiOperation({ summary: '게시글 수정', description: '게시글 수정 ', })
-  @ApiBody({ type: BoardDto })
-  @ApiParam({ name: 'bbsKindCd' })
-  @ApiParam({ name: 'id' })
+  @ApiOperation({
+    summary: '게시글 수정',
+    description: '게시글 수정 ',
+  })
   @UseInterceptors(FilesInterceptor('files'))
-  async updateBoard(
-    @Body() props: BoardDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Param('bbsKindCd') bbsKindCd: string,
-    @Param('id') id: string,
-    @UserParam() user: RequestUserDto,
+  @ApiBody({ type: BoardDto })
+  @ApiParam({ name: 'id' })
+  @ApiParam({ name: 'bbsKindCd' })  
+  async updateBoard(@Body() props 
+                                  ,@Param('bbsKindCd') bbsKindCd: any
+                                  ,@Param('id') path: any  
+                                  ,@Req() req 
+                                  ,@TransactionParam() transaction: Transaction
+                                  ,@UploadedFiles() files: Array<Express.Multer.File>
   ) {
-    props.bbsKindCd = bbsKindCd;
-    props.id = id;
-    props.files = files
-
-    return this.boardService.updateBoard(props, user)
+    const member = req.user;
+    props = JSON.parse(props.body)
+    props['id'] = path;
+    props['bbsKindCd'] = bbsKindCd;
+    props['files'] = files
+    return this.boardService.updateBoard({ props, member, transaction})
   }
 
-
-  /*************************************************   
-   * @description    게시글 삭제
-   * @param          {string} id
-   * @returns        게시글 삭제 성공여부
+  /*************************************************
+   * 게시글 삭제 
+   * -> 
+   * 
+   * @param 
+   * @returns 게시글 삭제
    ************************************************/
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('JWT')
   @Delete('/:id')
-  @ApiOperation({ summary: '게시글 삭제', description: '게시글 삭제', })
+  @ApiOperation({
+    summary: '게시글 삭제 API',
+    description: '게시글 삭제 API',
+  })
+  @ApiQuery({type: BoardDto})
   @ApiParam({ name: 'id' })
-  async deleteBoard(
-    @Param('id') id: string,
-    @UserParam() user: RequestUserDto,
+  @ApiParam({ name: 'bbsKindCd' })  
+  async deleteBoard(@Query() props
+                                ,@Param('bbsKindCd') bbsKindCd: any
+                                ,@Param('id') path: any  
+                                ,@Req() req
+                                ,@TransactionParam() transaction: Transaction
   ) {
-
-    return this.boardService.deleteBoard(id, user)
+    const member = req.user;
+    props['id'] = path;
+    props['bbsKindCd'] = bbsKindCd;
+    return this.boardService.deleteBoard({ props, member, transaction})
   }
 
+  /*************************************************
+   * 마이페이지 - 내문의리스트
+   * 
+   * @param 
+   * @returns  마이페이지 - 내문의리스트 
+   ************************************************/
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('JWT')
+  @Get('/auth/:bbsKindCd')
+  @ApiOperation({
+    summary: '프로젝트 문의 리스트',
+    description: '프로젝트 문의 리스트',
+  })
+  @ApiQuery({ type: CommonPageDto})
+  async getAuthBoardList( @Query() props
+                                          ,@Req() req
+                                          ,@TransactionParam() transaction: Transaction) {
+    const member = req.user;
+    return this.boardService.getBoardList({ props, member, transaction});
+  }
+
+  
 }

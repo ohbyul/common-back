@@ -21,19 +21,11 @@ export class  Crypto {
         return decrypted;
     }
 
-    async getEncrypto(text:string)  {
-        
-        var encrypted = CryptoJS.AES.encrypt(text, this.secretKey);
-        let result = encrypted.toString()
-
-        return encodeURIComponent(result)
-    }
-
     /*************************************************
      * NCP API 호출시 사용되는  signature 생성
      * 
      * @returns signature
-    ************************************************/
+     ************************************************/
     async makeSignature(timestamp : number, method : string, uri : string) : Promise<string> {
         const space = " ";				// one space
         const newLine = "\n";				// new line

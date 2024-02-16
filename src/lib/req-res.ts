@@ -11,7 +11,6 @@ export class ReqRes {
   // [ get / post / put / delete ]
   async requestMethod(params : any) {
     let { method , url , header , body } = params
-    
     const sendHeader = JSON.parse( JSON.stringify(header));
     const sendData = JSON.parse(JSON.stringify(body));
     

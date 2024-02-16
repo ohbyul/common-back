@@ -1,23 +1,19 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { SequelizeModule } from '@nestjs/sequelize';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
-import { SequelizeTransactionalModule, initSequelizeCLS } from 'sequelize-transactional-decorator';
+import { APP_FILTER } from '@nestjs/core';
+import { HttpExceptionFilter } from './interceptor/http-exception.filter';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TransactionInterceptor } from './interceptor/transaction.interceptor';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-import { AuthModule } from './auth/auth.module';
-import { UserModule } from './user/user.module';
-import { BoardModule } from './board/board.module';
-
-import { USER } from './entitys/auth/user.entity';
-
 import { COMMON } from './entitys/common/common.model';
-import { CommonModule } from './common/common.module';
-import { AllExceptionsFilter } from './filter/all.exceptions.filter';
 
-initSequelizeCLS();
+import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { BoardModule } from './board/board.module';
 
 @Module({
   imports: [
@@ -40,25 +36,23 @@ initSequelizeCLS();
         min: 5
       },
       logging: process.env.DATABASE_LOGGING == null ? false : process.env.DATABASE_LOGGING === 'true',
-      benchmark: true,  /* 쿼리수행 시간 */
       models: [COMMON],
     }),
-    SequelizeTransactionalModule.register(),
     AuthModule,
-    UserModule,
+    CommonModule,
     BoardModule,
-    CommonModule
   ],
   controllers: [AppController],
-  providers: [
-    AppService,
+  providers: [AppService,
     {
       provide: APP_FILTER,
-      useClass: AllExceptionsFilter,
+      useClass: HttpExceptionFilter,
     },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: TransactionInterceptor,
+    },
+
   ],
-  exports: [
-    CommonModule
-  ]
 })
-export class AppModule { }
+export class AppModule {}
